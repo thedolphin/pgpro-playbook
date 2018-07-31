@@ -1,0 +1,15 @@
+pg_base:
+  service: "postgrespro-std-10"
+  prefix: "/opt/pgpro/std-10"
+  pgdata: "/var/lib/pgpro/std-10/data"
+  backup: "/var/lib/pgpro/std-10/backups"
+  user: "postgres"
+  group: "postgres"
+
+pg_config:
+  shared_buffers: "{{ (ansible_memtotal_mb / 2) | int}}MB"
+  effective_cache_size: "{{ (ansible_memtotal_mb / 4) | int }}MB"
+  temp_buffers: "33MB"
+  work_mem: "{{ (ansible_memtotal_mb / 32) | int }}MB"
+  maintenance_work_mem: "{{ (ansible_memtotal_mb / 32) | int }}MB"
+  checkpoint_completion_target: "0.9"

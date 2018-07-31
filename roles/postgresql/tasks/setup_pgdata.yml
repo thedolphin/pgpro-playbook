@@ -1,0 +1,8 @@
+- name: create pgdata
+  file:
+    path: "{{ pg_base.pgdata }}"
+    state: directory
+
+- name: initdb
+  command: "{{ pg_base.prefix }}/bin/initdb --pgdata={{ pg_base.pgdata }}"
+  become_user: "{{ pg_base.user }}"

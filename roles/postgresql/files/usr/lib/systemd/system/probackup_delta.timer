@@ -1,0 +1,8 @@
+[Unit]
+Description=Run PGPro incremental backup
+
+[Timer]
+OnCalendar=Mon,Tue,Wed,Thu,Fri,Sat *-*-* 03:00:00
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,69 @@
+- name: create probackup basedir
+  file:
+    path: "{{ pg_base.backup }}"
+    owner: "{{ pg_base.user }}"
+    group: "{{ pg_base.group }}"
+    state: directory
+    mode: 0700
+
+- name: probackup precheck
+  stat:
+    path: "{{ pg_base.backup }}/backups"
+  register: pgpro_backup
+
+- name: probackup instance check
+  stat:
+    path: "{{ pg_base.backup }}/backups/main"
+  register: pgpro_backup_main
+
+- name: probackup init
+  command: "{{ pg_base.prefix }}/bin/pg_probackup init -B {{ pg_base.backup }}"
+  become: yes
+  become_user: "{{ pg_base.user }}"
+  when: not pgpro_backup.stat.exists
+
+- name: probackup init instance main
+  command: "{{ pg_base.prefix }}/bin/pg_probackup add-instance -B {{ pg_base.backup }} -D {{ pg_base.pgdata }} --instance main"
+  become: yes
+  become_user: "{{ pg_base.user }}"
+  when: not pgpro_backup_main.stat.exists
+
+- name: full backup service
+  template:
+    src: usr/lib/systemd/system/probackup_full.service.j2
+    dest: /usr/lib/systemd/system/probackup_full.service
+  notify: systemd reload
+
+- name: delta backup service
+  template:
+    src: usr/lib/systemd/system/probackup_delta.service.j2
+    dest: /usr/lib/systemd/system/probackup_delta.service
+  notify: systemd reload
+
+- name: full backup timer
+  copy:
+    src: usr/lib/systemd/system/probackup_full.timer
+    dest: /usr/lib/systemd/system/probackup_full.timer
+  notify:
+    - systemd reload
+    - full backup timer restart
+
+- name: delta backup timer
+  copy:
+    src: usr/lib/systemd/system/probackup_delta.timer
+    dest: /usr/lib/systemd/system/probackup_delta.timer
+  notify:
+    - systemd reload
+    - delta backup timer restart
+
+- name: enable full backup timer and do first backup
+  systemd:
+    name: probackup_full.timer
+    enabled: yes
+    state: started
+
+- name: enable delta backup timer
+  systemd:
+    name: probackup_delta.timer
+    enabled: yes
+    state: started

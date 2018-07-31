@@ -1,0 +1,10 @@
+[Unit]
+Description=PGPro Full Backup
+After={{ pg_base.service }}.service
+Requisite={{ pg_base.service }}.service
+
+[Service]
+Type=oneshot
+ExecStart={{ pg_base.prefix }}/bin/pg_probackup backup -B {{ pg_base.backup }} --instance main -b FULL --stream
+User={{ pg_base.user }}
+Group={{ pg_base.group }}

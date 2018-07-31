@@ -1,0 +1,10 @@
+TimeZone = 'W-SU'
+log_timezone ='W-SU'
+default_text_search_config = 'pg_catalog.english'
+lc_messages = 'C'
+logging_collector = 'on'
+listen_addresses = '0.0.0.0'
+
+{% for item in pg_config %}
+{{ item }} = {{ pg_config[item] }}
+{% endfor %}

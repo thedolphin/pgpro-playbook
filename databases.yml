@@ -1,0 +1,4 @@
+- name: databases config
+  hosts: databases
+  roles:
+    - postgresql

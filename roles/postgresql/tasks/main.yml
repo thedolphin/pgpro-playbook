@@ -1,0 +1,56 @@
+- name: setup system
+  include: setup_system.yml
+
+- name: postgres repo config
+  yum_repository:
+    name: postgrespro
+    description: postgrespro
+    baseurl: http://repo.postgrespro.ru/pgpro-10/centos/$releasever/os/$basearch/rpms/
+    gpgcheck: no
+
+- name: vanilla postgres uninstall
+  yum:
+    name: 'postgresql*'
+    state: 'absent'
+
+- name: postgrespro install
+  yum:
+    name:
+        - postgrespro-std-10
+        - postgrespro-std-10-pgprobackup
+    state: present
+  register: pg_packages
+
+- name: check pgdata
+  stat:
+    path: "{{ pg_base.pgdata }}"
+  register: pgdata_dir
+
+- name: init pgdata
+  include_tasks: setup_pgdata
+  when: not pgdata_dir.stat.exists
+
+- name: pg configuration
+  template:
+    src: pg/postgresql.conf.j2
+    dest: "{{ pg_base.pgdata }}/postgresql.conf"
+    owner: "{{ pg_base.user }}"
+    group: "{{ pg_base.group }}"
+    mode: 0600
+  notify: reload postgres
+
+- name: pg hba
+  copy:
+    src: pg/pg_hba.conf
+    dest: "{{ pg_base.pgdata }}/pg_hba.conf"
+  when: pg_packages.changed
+#  notify: reload postgres
+
+- name: final restart
+  systemd:
+    name: "{{ pg_base.service }}"
+    state: restarted
+  when: pg_packages.changed
+
+- name: setup probackup
+  include: setup_probackup.yml

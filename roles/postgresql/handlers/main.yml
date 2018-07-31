@@ -1,0 +1,17 @@
+- name: reload postgres
+  systemd:
+    name: "{{ pg_base.service }}"
+    state: reloaded
+
+- name: systemd reload
+  command: /usr/bin/systemctl daemon-reload
+
+- name: full backup timer restart
+  systemd:
+    name: probackup_full.timer
+    state: restarted
+
+- name: delta backup timer restart
+  systemd:
+    name: probackup_delta.timer
+    state: restarted
